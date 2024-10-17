@@ -20,11 +20,9 @@ class ContactsApp(App):
         ("d", "delete", "Delete"),
         ("c", "clear_all", "Clear All"),
         ("q", "request_quit", "Quit"),
-        ("j", "cursor_up", "Cursor up"),
-        ("k", "cursor_down", "Cursor down"),
+        # ("j", "cursor_down", "Move Down"),
+        # ("k", "cursor_up", "Move Up"),
     ]
-
-    current_sorts: set = set()
 
     def __init__(self, db):
         super().__init__()
@@ -94,6 +92,13 @@ class ContactsApp(App):
             QuestionDialog(f"Do you want to delete {name}'s contact?"),
             check_answer,
         )
+    
+    def on_key(self, event) -> None:
+        """Handle key presses for custom bindings."""
+        if event.key == "j":
+            self.query_one(DataTable).action_cursor_down()  # Move cursor down
+        elif event.key == "k":
+            self.query_one(DataTable).action_cursor_up()    # Move cursor up
     
 
 class QuestionDialog(Screen):
