@@ -20,8 +20,7 @@ class ContactsApp(App):
         ("d", "delete", "Delete"),
         ("c", "clear_all", "Clear All"),
         ("q", "request_quit", "Quit"),
-        # ("j", "cursor_down", "Move Down"),
-        # ("k", "cursor_up", "Move Up"),
+        ("e", "edit", "Edit")
     ]
 
     def __init__(self, db):
@@ -75,6 +74,7 @@ class ContactsApp(App):
                 self.db.add_contact(contact_data)
                 id, *contact = self.db.get_last_contact()
                 self.query_one(DataTable).add_row(*contact, key=id)
+                self._refresh_contacts()
 
         self.push_screen(InputDialog(), check_contact)
 
@@ -144,6 +144,14 @@ class InputDialog(Screen):
             Button("Cancel", variant="warning", id="cancel"),
             id="input-dialog",
         )
+    def on_button_pressed(self, event):
+        if event.button.id == "ok":
+            name = self.query_one("#name", Input).value.rstrip()
+            phone = self.query_one("#phone", Input).value
+            email = self.query_one("#email", Input).value
+            self.dismiss((name, phone, email))
+        else:
+            self.dismiss(())
 
 class QuestionDialog(Screen):
     def __init__(self, message, *args, **kwargs):
@@ -168,49 +176,10 @@ class QuestionDialog(Screen):
             self.dismiss(False)
 
 
-# class InputDialog(Screen):
-#     def __init__(self, existing_data=None, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.existing_data = existing_data or ("", "", "")
-
-#     def compose(self):
-#         yield Grid(
-#             Label("Edit Contact" if self.existing_data[0] else "Add Contact", id="title"),
-#             Label("Name:", classes="label"),
-#             Input(
-#                 placeholder="Contact Name",
-#                 classes="input",
-#                 id="name",
-#             ),
-#             Label("Phone:", classes="label"),
-#             Input(
-#                 placeholder="Contact Phone",
-#                 classes="input",
-#                 id="phone"
-#             ),
-#             Label("Email:", classes="label"),
-#             Input(
-#                 placeholder="Contact Email",
-#                 classes="input",
-#                 id="email",
-#             ),
-#             Static(),
-#             Button("OK", variant="success", id="ok"),
-#             Button("Cancel", variant="warning", id="cancel"),
-#             id="input-dialog",
-#         )
-    
 
     
 
-    def on_button_pressed(self, event):
-        if event.button.id == "ok":
-            name = self.query_one("#name", Input).value
-            phone = self.query_one("#phone", Input).value
-            email = self.query_one("#email", Input).value
-            self.dismiss((name, phone, email))
-        else:
-            self.dismiss(())
+
 
 
     
