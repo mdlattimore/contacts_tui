@@ -46,5 +46,11 @@ class Database:
             id,
         )
 
+    def update_contact(self, id, new_data):
+        name, phone, email = new_data
+        self._run_query(
+            f"UPDATE contacts SET name='{name}', phone='{phone}', email='{email}' WHERE id={id}"
+        )
+
     def clear_all_contacts(self):
         self._run_query("DELETE FROM contacts;")

@@ -39,6 +39,7 @@ class ContactsApp(App):
         add_button.focus()
         buttons_panel = Vertical(
             add_button,
+            Button("Edit", variant="primary", id="edit"),  # Add Edit button here
             Button("Delete", variant="warning", id="delete"),
             Static(classes="separator"),
             Button("Clear All", variant="error", id="clear"),
@@ -77,6 +78,29 @@ class ContactsApp(App):
 
         self.push_screen(InputDialog(), check_contact)
 
+    @on(Button.Pressed, "#edit")
+    def action_edit(self):
+        contacts_list = self.query_one(DataTable)
+        row_key, _ = contacts_list.coordinate_to_cell_key(contacts_list.cursor_coordinate)
+
+        if row_key is not None:
+            existing_data = contacts_list.get_row(row_key)  # Get existing contact data
+
+            def check_contact(updated_data):
+                if updated_data:
+                    self.db.update_contact(id=row_key.value, new_data=updated_data)
+                    self._refresh_contacts()  # Call refresh method after update
+
+            # Pass existing data to the InputDialog to pre-fill the fields
+            self.push_screen(InputDialog(existing_data), check_contact)
+
+    def _refresh_contacts(self):
+        """Helper method to reload contacts from the database into the DataTable."""
+        contacts_list = self.query_one(DataTable)
+        contacts_list.clear()  # Clear all existing rows
+        self._load_contacts()  # Reload contacts from the database
+
+
     @on(Button.Pressed, "#delete")
     def action_delete(self):
         contacts_list = self.query_one(DataTable)
@@ -100,6 +124,26 @@ class ContactsApp(App):
         elif event.key == "k":
             self.query_one(DataTable).action_cursor_up()    # Move cursor up
     
+class InputDialog(Screen):
+    def __init__(self, existing_data=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.existing_data = existing_data or ("", "", "")  # Default to empty if None
+
+    def compose(self):
+        name, phone, email = self.existing_data
+        yield Grid(
+            Label("Edit Contact" if self.existing_data[0] else "Add Contact", id="title"),
+            Label("Name:", classes="label"),
+            Input(value=name, placeholder="Contact Name", classes="input", id="name"),  # Pre-fill with name
+            Label("Phone:", classes="label"),
+            Input(value=phone, placeholder="Contact Phone", classes="input", id="phone"),  # Pre-fill with phone
+            Label("Email:", classes="label"),
+            Input(value=email, placeholder="Contact Email", classes="input", id="email"),  # Pre-fill with email
+            Static(),
+            Button("OK", variant="success", id="ok"),
+            Button("Cancel", variant="warning", id="cancel"),
+            id="input-dialog",
+        )
 
 class QuestionDialog(Screen):
     def __init__(self, message, *args, **kwargs):
@@ -124,33 +168,40 @@ class QuestionDialog(Screen):
             self.dismiss(False)
 
 
-class InputDialog(Screen):
-    def compose(self):
-        yield Grid(
-            Label("Add Contact", id="title"),
-            Label("Name:", classes="label"),
-            Input(
-                placeholder="Contact Name",
-                classes="input",
-                id="name",
-            ),
-            Label("Phone:", classes="label"),
-            Input(
-                placeholder="Contact Phone",
-                classes="input",
-                id="phone"
-            ),
-            Label("Email:", classes="label"),
-            Input(
-                placeholder="Contact Email",
-                classes="input",
-                id="email",
-            ),
-            Static(),
-            Button("OK", variant="success", id="ok"),
-            Button("Cancel", variant="warning", id="cancel"),
-            id="input-dialog",
-        )
+# class InputDialog(Screen):
+#     def __init__(self, existing_data=None, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.existing_data = existing_data or ("", "", "")
+
+#     def compose(self):
+#         yield Grid(
+#             Label("Edit Contact" if self.existing_data[0] else "Add Contact", id="title"),
+#             Label("Name:", classes="label"),
+#             Input(
+#                 placeholder="Contact Name",
+#                 classes="input",
+#                 id="name",
+#             ),
+#             Label("Phone:", classes="label"),
+#             Input(
+#                 placeholder="Contact Phone",
+#                 classes="input",
+#                 id="phone"
+#             ),
+#             Label("Email:", classes="label"),
+#             Input(
+#                 placeholder="Contact Email",
+#                 classes="input",
+#                 id="email",
+#             ),
+#             Static(),
+#             Button("OK", variant="success", id="ok"),
+#             Button("Cancel", variant="warning", id="cancel"),
+#             id="input-dialog",
+#         )
+    
+
+    
 
     def on_button_pressed(self, event):
         if event.button.id == "ok":
