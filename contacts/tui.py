@@ -24,6 +24,8 @@ class ContactsApp(App):
         ("k", "cursor_down", "Cursor down"),
     ]
 
+    current_sorts: set = set()
+
     def __init__(self, db):
         super().__init__()
         self.db = db
@@ -93,8 +95,6 @@ class ContactsApp(App):
             check_answer,
         )
     
-    
-
 
 class QuestionDialog(Screen):
     def __init__(self, message, *args, **kwargs):
@@ -142,8 +142,8 @@ class InputDialog(Screen):
                 id="email",
             ),
             Static(),
-            Button("Cancel", variant="warning", id="cancel"),
             Button("OK", variant="success", id="ok"),
+            Button("Cancel", variant="warning", id="cancel"),
             id="input-dialog",
         )
 
