@@ -18,20 +18,26 @@ class ContactsApp(App):
         ("m", "toggle_dark", "Toggle dark mode"),
         ("a", "add", "Add"),
         ("d", "delete", "Delete"),
-        ("c", "clear_all", "Clear All"),
         ("q", "request_quit", "Quit"),
-        ("e", "edit", "Edit")
+        ("e", "edit", "Edit"),
+        ("f", "sort_by_first_name", "Sort By First Name"),
+        ("l", "sort_by_last_name", "Sort By Last Name"),
+
     ]
 
     def __init__(self, db):
         super().__init__()
         self.db = db
 
+    current_sorts: set = set()
+
+
     def compose(self):
+        global keys
         yield Header()
         contacts_list = DataTable(classes="contacts-list")
         contacts_list.focus()
-        contacts_list.add_columns("Name", "Phone", "Email")
+        keys = contacts_list.add_columns("Name", "Phone", "Email")
         contacts_list.cursor_type = "row"
         contacts_list.zebra_stripes = True
         add_button = Button("Add", variant="success", id="add")
@@ -47,10 +53,39 @@ class ContactsApp(App):
         yield Horizontal(contacts_list, buttons_panel)
         yield Footer()
 
+
+
     def on_mount(self):
         self.title = "Contacts"
-        self.sub_title = "A Contacts Book App with Textual and Python"
         self._load_contacts()
+
+    def sort_reverse(self, sort_type: str):
+        """Determine if `sort_type` is ascending or descending."""
+        reverse = sort_type in self.current_sorts
+        if reverse:
+            self.current_sorts.remove(sort_type)
+        else:
+            self.current_sorts.add(sort_type)
+
+        return reverse
+    
+    def action_sort_by_last_name(self) -> None:
+        """Sort DataTable by last name (via a lambda)."""
+        table = self.query_one(DataTable)
+        table.sort(
+            keys[0],
+            key=lambda name: (name.split()[-1], name.split()[0]),
+            reverse=self.sort_reverse("name"),
+        )
+
+    def action_sort_by_first_name(self) -> None:
+        """Sort DataTable by first name (via a lambda)."""
+        table = self.query_one(DataTable)
+        table.sort(
+            keys[0],
+            key=lambda name: (name.split()[0], name.split()[-1]),
+            reverse=self.sort_reverse("name"),
+        )
 
     def _load_contacts(self):
         contacts_list = self.query_one(DataTable)
