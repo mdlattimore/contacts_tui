@@ -27,7 +27,8 @@ class Database:
         return result
     
     def get_all_contacts(self):
-        result = self._run_query("SELECT * FROM contacts ORDER BY SUBSTR(name, INSTR(name, ' ')), name;")
+        # result = self._run_query("SELECT * FROM contacts ORDER BY SUBSTR(name, INSTR(name, ' ')), name;")
+        result = self._run_query("SELECT * from contacts ORDER BY name;")
         return result.fetchall()
     
     def get_last_contact(self):
