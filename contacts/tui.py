@@ -1,3 +1,4 @@
+import webbrowser
 from textual.app import App, on
 from textual.containers import Grid, Horizontal, Vertical
 from textual.screen import Screen
@@ -18,8 +19,9 @@ class ContactsApp(App):
         ("m", "toggle_dark", "Toggle dark mode"),
         ("a", "add", "Add"),
         ("d", "delete", "Delete"),
+        ("e", "send_email", "Send Email"),
         ("q", "request_quit", "Quit"),
-        ("e", "edit", "Edit"),
+        ("u", "update", "Update"),
         ("f", "sort_by_first_name", "Sort By First Name"),
         ("l", "sort_by_last_name", "Sort By Last Name"),
 
@@ -44,10 +46,11 @@ class ContactsApp(App):
         add_button.focus()
         buttons_panel = Vertical(
             add_button,
-            Button("Edit", variant="primary", id="edit"),  # Add Edit button here
+            Static(classes="separator"),
+            Button("Update", variant="primary", id="update"),  # Add Edit button here
+            Static(classes="separator"),
             Button("Delete", variant="warning", id="delete"),
             Static(classes="separator"),
-            Button("Clear All", variant="error", id="clear"),
             classes="buttons-panel"
         )
         yield Horizontal(contacts_list, buttons_panel)
@@ -113,8 +116,8 @@ class ContactsApp(App):
 
         self.push_screen(InputDialog(), check_contact)
 
-    @on(Button.Pressed, "#edit")
-    def action_edit(self):
+    @on(Button.Pressed, "#update")
+    def action_update(self):
         contacts_list = self.query_one(DataTable)
         row_key, _ = contacts_list.coordinate_to_cell_key(contacts_list.cursor_coordinate)
 
@@ -128,6 +131,15 @@ class ContactsApp(App):
 
             # Pass existing data to the InputDialog to pre-fill the fields
             self.push_screen(InputDialog(existing_data), check_contact)
+
+    def action_send_email(self):
+        contacts_list = self.query_one(DataTable)
+        row_key, _ = contacts_list.coordinate_to_cell_key(contacts_list.cursor_coordinate)
+        if row_key is not None:
+            record = contacts_list.get_row(row_key)  # Get existing contact data
+            email = record[2]
+            webbrowser.open(f"mailto:{email}")
+
 
     def _refresh_contacts(self):
         """Helper method to reload contacts from the database into the DataTable."""
@@ -152,6 +164,8 @@ class ContactsApp(App):
             check_answer,
         )
     
+
+
     def on_key(self, event) -> None:
         """Handle key presses for custom bindings."""
         if event.key == "j":

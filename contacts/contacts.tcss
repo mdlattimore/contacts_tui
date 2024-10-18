@@ -38,7 +38,7 @@ Button {
 }
 
 .separator {
-    height: 1fr;
+    height: 1;
 }
 
 InputDialog {
